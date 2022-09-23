@@ -1,28 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
-import { NewComemment } from "../components/NewComment";
+import { NewComment } from "../components/NewComment";
 import { Comment } from "../components/Comment";
 import { Reply } from "../components/Reply";
-
-export type User = {
-    image: {
-        png: string;
-        webp: string;
-    };
-    username: string;
-};
-
-export type Comments = {
-    id: number;
-    content: string | undefined;
-    createdAt: string;
-    score: number;
-    user: User | undefined;
-    replies: Comments[];
-};
+import { Comments, User } from "src/libs/types";
 
 export function CommentsSection() {
-    const url = "http://localhost:3300/currentUser";
-    const url2 = "http://localhost:3300/comments";
     const [user, setUser] = useState<User>();
     const [comments, setComments] = useState<Comments[]>([]);
     const [newComment, setNewComment] = useState<string>();
@@ -30,21 +12,12 @@ export function CommentsSection() {
     const [id, setId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetch(url)
+        fetch("./db.json")
             .then((response) => response.json())
-            .then((item) => {
-                setUser(item);
-                console.log(url);
-            });
-    }, []);
-
-    useEffect(() => {
-        fetch(url2)
-            .then((response) => response.json())
-            .then((item) => {
-                setComments(item);
-                console.log(item);
-                console.log(url2);
+            .then((response) => {
+                console.log(response);
+                setComments(response.comments);
+                setUser(response.currentUser);
             });
     }, []);
 
@@ -54,7 +27,11 @@ export function CommentsSection() {
         const newComent = {
             id: comments.length + 1,
             content: newComment,
-            createdAt: new Date().toString(),
+            createdAt: new Date().toLocaleDateString("en", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            }),
             score: 0,
             user: user,
             replies: [] as Comments[],
@@ -64,17 +41,6 @@ export function CommentsSection() {
     }
 
     function handleSubmitComment(event: FormEvent) {
-        // event.preventDefault();
-
-        // const newComent = {
-        //     id: comments.length + 1,
-        //     content: newComment,
-        //     createdAt: new Date().toString(),
-        //     score: 0,
-        //     user: user,
-        //     replies: [] as Comments[],
-        // };
-
         const newComment = handleSubmit(event);
 
         setComments((comments) => [...comments, newComment]);
@@ -82,35 +48,82 @@ export function CommentsSection() {
     }
 
     function handleSubmitReply(event: FormEvent) {
-        // event.preventDefault();
-
-        // const newComent = {
-        //     id: comments.length + 1,
-        //     content: newComment,
-        //     createdAt: new Date().toString(),
-        //     score: 0,
-        //     user: user,
-        //     replies: [] as Comments[],
-        // };
-
-        // console.log(newComent);
         const newComment = handleSubmit(event);
 
-        console.log(
-            comments.filter((item) => {
-                if (item.id === id) {
-                    item.replies.push(newComment);
-                }
-            })
-        );
-        console.log(comments);
+        comments.filter((item) => {
+            if (item.id === id) {
+                item.replies.push(newComment);
+            }
+        });
 
-        // setComments((comments) => [...comments, newComent]);
+        setComments([...comments]);
+
         setNewComment("");
         setId(null);
     }
 
-    // function addNewComment() {}
+    function handleRemove(id: number, comment: Comments) {
+        comments.filter((item) => {
+            if (item.id == comment.id) {
+                item.replies = item.replies.filter((item2) => item2.id != id);
+            }
+        });
+
+        setComments([...comments]);
+    }
+
+    function handleRemoveComment(id: number, comment: Comments) {
+        setComments(comments.filter((item) => item.id != id));
+    }
+
+    function handleUpVoteReply(reply: Comments, comment: Comments) {
+        comments.filter((item) => {
+            if (item.id == comment.id) {
+                item.replies.filter((item2) => {
+                    if (item2.id == reply.id) {
+                        item2.score = item2.score + 1;
+                    }
+                });
+            }
+        });
+
+        setComments([...comments]);
+    }
+
+    function handleDownVoteReply(reply: Comments, comment: Comments) {
+        comments.filter((item) => {
+            if (item.id == comment.id) {
+                item.replies.filter((item2) => {
+                    if (item2.id == reply.id) {
+                        item2.score = item2.score - 1;
+                    }
+                });
+            }
+        });
+
+        setComments([...comments]);
+    }
+
+    function handleUpVote(comment: Comments) {
+        comments.filter((item) => {
+            if (item.id == comment.id) {
+                item.score = item.score + 1;
+            }
+        });
+
+        setComments([...comments]);
+    }
+
+    function handleDownVote(comment: Comments) {
+        comments.filter((item) => {
+            if (item.id == comment.id) {
+                item.score = item.score - 1;
+            }
+        });
+
+        setComments([...comments]);
+    }
+
     return (
         <div className="flex flex-col items-center">
             <div className="flex flex-col items-center">
@@ -121,11 +134,13 @@ export function CommentsSection() {
                                 comment={item}
                                 currentUser={user}
                                 openNewComment={setId}
+                                handleRemove={handleRemoveComment}
+                                handleUpVote={handleUpVote}
+                                handleDownVote={handleDownVote}
                             />
                             {id && id === item.id ? (
-                                <NewComemment
+                                <NewComment
                                     user={user}
-                                    // openNewComment={setId}
                                     addNewComment={setNewComment}
                                     handleSubmit={handleSubmitReply}
                                 />
@@ -133,9 +148,12 @@ export function CommentsSection() {
                                 ""
                             )}
                             <Reply
-                                replies={item.replies}
+                                commentP={item}
                                 originalCommentUser={item.user}
                                 currentUser={user}
+                                handleRemove={handleRemove}
+                                handleUpVote={handleUpVoteReply}
+                                handleDownVote={handleDownVoteReply}
                             />
                         </li>
                     ))}

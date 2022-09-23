@@ -1,5 +1,4 @@
-import { Comments } from "../page/CommentsSection";
-
+import { Comments } from "../libs/types";
 import reply from "../assets/icon-reply.svg";
 
 interface HeaderUserProps {

@@ -1,24 +1,19 @@
-import { FormEvent, useState } from "react";
-
-import { User } from "src/page/CommentsSection";
+import { FormEvent } from "react";
+import { User } from "../libs/types";
 
 interface NewCommentProps {
     user?: User;
-    // openNewComment: (id: number | null) => void;
     addNewComment: (comment: string) => void;
     handleSubmit: (event: FormEvent) => void;
-    // handleSubmit2: (newComment: string) => void;
 }
 
-export function NewComemment({
+export function NewComment({
     user,
     addNewComment,
     handleSubmit,
 }: NewCommentProps) {
-    const [newComment, setNewComment] = useState<string>("");
-
     return (
-        <div className="bg-white-500 rounded-lg w-100 h-auto flex m-3 space-x-2 p-6">
+        <div className="bg-slate-700 rounded-lg w-auto h-auto flex m-3 space-x-2 p-6">
             <img src={user?.image.png} alt="" className="w-8 h-8 mr-1" />
 
             <form onSubmit={handleSubmit} className="w-full flex space-x-2">
@@ -28,7 +23,6 @@ export function NewComemment({
                     placeholder="Add a comment..."
                 />
                 <button
-                    // onClick={() => openNewComment(null)}
                     type="submit"
                     className="px-8 h-12 bg-esse-100 text-white-500 rounded-lg"
                 >
