@@ -13,7 +13,7 @@ export function NewComment({
     handleSubmit,
 }: NewCommentProps) {
     return (
-        <div className="bg-slate-700 rounded-lg w-auto h-auto flex m-3 space-x-2 p-6">
+        <div className="bg-white-500 rounded-lg w-auto h-auto flex m-3 space-x-2 p-6">
             <img src={user?.image.png} alt="" className="w-8 h-8 mr-1" />
 
             <form onSubmit={handleSubmit} className="w-full flex space-x-2">
